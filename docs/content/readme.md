@@ -21,7 +21,7 @@
 go build -o bin/uds-proxy ./cmd/uds-proxy
 
 # 或直接运行
-go run ./cmd/uds-proxy
+go run cmd/uds-proxy
 ```
 
 ### 运行
