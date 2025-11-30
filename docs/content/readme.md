@@ -18,7 +18,7 @@
 
 ```bash
 # 从源码构建
-go build -o uds-proxy ./cmd/uds-proxy
+go build -o bin/uds-proxy ./cmd/uds-proxy
 
 # 或直接运行
 go run ./cmd/uds-proxy
@@ -28,13 +28,13 @@ go run ./cmd/uds-proxy
 
 ```bash
 # 自动分配端口（默认写入 /tmp/uds-proxy.port）
-./uds-proxy
+bin/uds-proxy
 
 # 指定端口和主机
-./uds-proxy --host 127.0.0.1 --port 8080
+bin/uds-proxy --host 127.0.0.1 --port 8080
 
 # 禁用访问日志
-./uds-proxy --port 8080 --no-access-log
+bin/uds-proxy --port 8080 --no-access-log
 ```
 
 ### 基本用法
@@ -195,7 +195,7 @@ pre-commit install
 task -a
 
 # 构建项目
-go build -o uds-proxy ./cmd/uds-proxy
+go build -o bin/uds-proxy ./cmd/uds-proxy
 
 # 运行测试
 go test ./...
