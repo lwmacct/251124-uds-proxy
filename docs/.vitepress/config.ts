@@ -2,7 +2,6 @@ import { defineConfig, type DefaultTheme } from "vitepress";
 import nav from "./config/nav.json";
 // config sidebar
 import sidebarGuide from "./config/sidebar.guide.json";
-import sidebarIssues from "./config/sidebar.issues.json";
 import sidebarExamples from "./config/sidebar.examples.json";
 // config other
 import cfgSearch from "./config/search.json";
@@ -22,7 +21,7 @@ export default defineConfig({
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav,
-    sidebar: [...sidebarGuide, ...sidebarIssues, ...sidebarExamples],
+    sidebar: [...sidebarGuide, ...sidebarExamples],
 
     // 本地搜索 - 使用 MiniSearch 实现浏览器内索引
     search: cfgSearch as DefaultTheme.Config["search"],
