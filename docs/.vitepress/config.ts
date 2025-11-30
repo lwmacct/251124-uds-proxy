@@ -11,8 +11,8 @@ import markdownConfig from "./config/markdown";
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-  title: "My Awesome Project",
-  description: "A VitePress Site",
+  title: "uds-proxy",
+  description: "高性能 HTTP 到 Unix Domain Socket 代理服务",
   base: process.env.BASE || "/docs",
   srcDir: "content",
 
@@ -27,7 +27,7 @@ export default defineConfig({
     // 本地搜索 - 使用 MiniSearch 实现浏览器内索引
     search: cfgSearch as DefaultTheme.Config["search"],
 
-    socialLinks: [{ icon: "github", link: "https://github.com/vuejs/vitepress" }],
+    socialLinks: [{ icon: "github", link: "https://github.com" }],
   },
 
   // Markdown 渲染配置 (从 ./config/markdown.ts 导入)
