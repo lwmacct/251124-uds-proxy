@@ -11,9 +11,11 @@ import (
 	"strings"
 )
 
+// version 定义当前服务版本号。
 const version = "0.1.0"
 
-// handleRoot returns service information
+// handleRoot 处理根路径请求，返回服务信息。
+// 响应包含服务名称、版本、描述和使用示例。
 func (s *Server) handleRoot(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
@@ -37,7 +39,8 @@ func (s *Server) handleRoot(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(info)
 }
 
-// handleHealth returns health status
+// handleHealth 处理健康检查请求。
+// 返回 JSON 格式的健康状态信息，用于负载均衡器或监控系统。
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
@@ -46,7 +49,14 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// handleProxy proxies HTTP requests to Unix sockets
+// handleProxy 是核心代理处理函数，将 HTTP 请求转发到 Unix 域套接字。
+//
+// 请求参数：
+//   - path: (必需) Unix 套接字文件路径，如 /var/run/docker.sock
+//   - url: (可选) 目标 URL 路径，默认为 "/"
+//   - method: (可选) HTTP 方法，默认使用请求本身的方法
+//
+// 其他查询参数会被透传到后端请求。请求头（除 hop-by-hop 头）也会被复制。
 func (s *Server) handleProxy(w http.ResponseWriter, r *http.Request) {
 	// Get socket path from query parameter
 	socketPath := r.URL.Query().Get("path")
@@ -138,6 +148,7 @@ func (s *Server) handleProxy(w http.ResponseWriter, r *http.Request) {
 	io.Copy(w, resp.Body)
 }
 
+// errorResponse 向客户端发送标准化的 JSON 错误响应。
 func (s *Server) errorResponse(w http.ResponseWriter, statusCode int, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
