@@ -169,14 +169,21 @@ func TestServer_accessLogMiddleware(t *testing.T) {
 
 // TestResponseWriter 测试响应写入器
 func TestResponseWriter(t *testing.T) {
-	t.Run("默认状态码为 200", func(t *testing.T) {
+	t.Run("默认状态码为 200 且可正常写入", func(t *testing.T) {
 		rec := httptest.NewRecorder()
 		rw := &responseWriter{
 			ResponseWriter: rec,
 			statusCode:     http.StatusOK,
 		}
 
+		// 验证初始状态码
 		assert.Equal(t, http.StatusOK, rw.statusCode)
+
+		// 验证可以正常写入响应体
+		n, err := rw.Write([]byte("test"))
+		assert.NoError(t, err)
+		assert.Equal(t, 4, n)
+		assert.Equal(t, "test", rec.Body.String())
 	})
 
 	t.Run("WriteHeader 设置状态码", func(t *testing.T) {
