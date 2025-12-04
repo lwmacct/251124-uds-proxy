@@ -197,18 +197,31 @@ curl -X POST \
 ### Socket 不存在
 
 ```bash
-curl "http://localhost:8080/proxy?path=/var/run/nonexistent.sock&url=/version"
-# 返回 404: {"error": "socket file not found: /var/run/nonexistent.sock"}
+curl -w "%{http_code}" "http://localhost:8080/proxy?path=/var/run/nonexistent.sock&url=/version"
+# 返回 502 (无响应体)
 ```
 
 ### 权限不足
 
-如果返回连接错误，检查 socket 权限：
+如果返回 502（连接失败），检查 socket 权限：
 
 ```bash
 ls -la /var/run/docker.sock
 # 确保当前用户在 docker 组中
 sudo usermod -aG docker $USER
+```
+
+### 判断错误类型
+
+```bash
+# 网关错误：状态码 502/504 且无响应体
+# 目标服务错误：状态码透传，有响应体
+status=$(curl -s -o /dev/null -w "%{http_code}" "$URL")
+if [ "$status" = "502" ] || [ "$status" = "504" ]; then
+    echo "网关错误"
+else
+    echo "目标服务响应: $status"
+fi
 ```
 
 ## 实用脚本

@@ -2,17 +2,15 @@ package proxy
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
-)
 
-// version 定义当前服务版本号。
-const version = "0.1.0"
+	"github.com/lwmacct/251124-uds-proxy/internal/version"
+)
 
 // handleRoot 处理根路径请求，返回服务信息。
 // 响应包含服务名称、版本、描述和使用示例。
@@ -24,7 +22,7 @@ func (s *Server) handleRoot(w http.ResponseWriter, r *http.Request) {
 
 	info := map[string]any{
 		"service":     "uds-proxy",
-		"version":     version,
+		"version":     version.GetVersion(),
 		"description": "HTTP server that proxies requests to Unix domain sockets",
 		"usage":       "GET /proxy?path=/var/run/docker.sock&url=/containers/json",
 		"examples": map[string]string{
@@ -61,13 +59,14 @@ func (s *Server) handleProxy(w http.ResponseWriter, r *http.Request) {
 	// Get socket path from query parameter
 	socketPath := r.URL.Query().Get("path")
 	if socketPath == "" {
-		s.errorResponse(w, http.StatusBadRequest, "缺少 path 参数")
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	// Verify socket exists
 	if _, err := os.Stat(socketPath); os.IsNotExist(err) {
-		s.errorResponse(w, http.StatusNotFound, fmt.Sprintf("Socket 文件不存在: %s", socketPath))
+		slog.Warn("socket文件不存在", "path", socketPath)
+		w.WriteHeader(http.StatusBadGateway)
 		return
 	}
 
@@ -100,12 +99,13 @@ func (s *Server) handleProxy(w http.ResponseWriter, r *http.Request) {
 		targetURL += "?" + queryParams.Encode()
 	}
 
-	log.Printf("Proxy request: %s %s -> %s", method, targetURL, socketPath)
+	slog.Debug("代理请求", "method", method, "url", targetURL, "socket", socketPath)
 
 	// Create backend request
 	backendReq, err := http.NewRequestWithContext(r.Context(), method, targetURL, r.Body)
 	if err != nil {
-		s.errorResponse(w, http.StatusInternalServerError, fmt.Sprintf("创建请求失败: %v", err))
+		slog.Error("创建请求失败", "error", err)
+		w.WriteHeader(http.StatusBadGateway)
 		return
 	}
 
@@ -128,9 +128,11 @@ func (s *Server) handleProxy(w http.ResponseWriter, r *http.Request) {
 		s.pool.RemoveClient(socketPath)
 
 		if os.IsTimeout(err) {
-			s.errorResponse(w, http.StatusGatewayTimeout, fmt.Sprintf("请求超时: %v", err))
+			slog.Warn("请求超时", "socket", socketPath, "error", err)
+			w.WriteHeader(http.StatusGatewayTimeout)
 		} else {
-			s.errorResponse(w, http.StatusServiceUnavailable, fmt.Sprintf("连接失败: %v", err))
+			slog.Warn("连接失败", "socket", socketPath, "error", err)
+			w.WriteHeader(http.StatusBadGateway)
 		}
 		return
 	}
@@ -148,12 +150,3 @@ func (s *Server) handleProxy(w http.ResponseWriter, r *http.Request) {
 	io.Copy(w, resp.Body)
 }
 
-// errorResponse 向客户端发送标准化的 JSON 错误响应。
-func (s *Server) errorResponse(w http.ResponseWriter, statusCode int, message string) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
-	json.NewEncoder(w).Encode(map[string]any{
-		"error":  true,
-		"detail": message,
-	})
-}

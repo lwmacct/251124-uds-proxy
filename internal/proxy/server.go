@@ -3,7 +3,7 @@ package proxy
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"net"
 	"net/http"
 	"os"
@@ -42,7 +42,7 @@ func (s *Server) Run() error {
 
 	// Write port to file
 	if err := s.writePortInfo(); err != nil {
-		log.Printf("Warning: failed to write port file: %v", err)
+		slog.Warn("写入端口文件失败", "error", err)
 	}
 
 	// Setup HTTP server
@@ -67,7 +67,7 @@ func (s *Server) Run() error {
 
 	// Print startup info
 	fmt.Printf("PORT=%d\n", s.actualPort)
-	log.Printf("uds-proxy server starting on %s", addr)
+	slog.Info("服务器启动", "addr", addr)
 
 	return s.httpServer.ListenAndServe()
 }
@@ -90,7 +90,7 @@ func (s *Server) Shutdown() {
 		os.Remove(s.config.PortFile)
 	}
 
-	log.Println("Server shutdown complete")
+	slog.Info("服务器关闭完成")
 }
 
 // getAvailablePort 返回可用的端口号。
@@ -126,7 +126,12 @@ func (s *Server) accessLogMiddleware(next http.Handler) http.Handler {
 		start := time.Now()
 		wrapped := &responseWriter{ResponseWriter: w, statusCode: http.StatusOK}
 		next.ServeHTTP(wrapped, r)
-		log.Printf("%s %s %d %s", r.Method, r.URL.Path, wrapped.statusCode, time.Since(start))
+		slog.Info("access",
+			"method", r.Method,
+			"path", r.URL.Path,
+			"status", wrapped.statusCode,
+			"duration", time.Since(start),
+		)
 	})
 }
 

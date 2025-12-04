@@ -64,11 +64,13 @@ curl "http://127.0.0.1:$PORT/"
 ```json
 {
   "service": "uds-proxy",
-  "version": "0.1.0",
+  "version": "v1.0.0",
   "description": "HTTP server that proxies requests to Unix domain sockets",
   "usage": "GET /proxy?path=/var/run/docker.sock&url=/containers/json"
 }
 ```
+
+> 版本号通过构建时 `-ldflags` 注入，未注入时显示 `Unknown` 或 `dev-<commit>`。
 
 ### GET /health
 
@@ -154,14 +156,16 @@ curl "http://127.0.0.1:8080/proxy?path=/tmp/service.sock&url=/api/search&q=test&
 
 ## 错误处理
 
-| 状态码 | 说明              |
-| ------ | ----------------- |
-| 200    | 请求成功          |
-| 400    | 缺少 path 参数    |
-| 404    | Socket 文件不存在 |
-| 500    | 内部服务器错误    |
-| 503    | 连接失败          |
-| 504    | 请求超时          |
+作为纯网关代理，错误时只返回状态码，无响应体：
+
+| 状态码 | 说明                                   |
+| ------ | -------------------------------------- |
+| 2xx    | 透传目标服务响应                       |
+| 4xx    | 透传目标服务响应                       |
+| 5xx    | 透传目标服务响应                       |
+| 400    | 缺少 path 参数（代理自身错误）         |
+| 502    | 网关错误（Socket 不存在、连接失败等）  |
+| 504    | 网关超时（目标服务响应超时）           |
 
 ## 项目结构
 
@@ -171,11 +175,15 @@ curl "http://127.0.0.1:8080/proxy?path=/tmp/service.sock&url=/api/search&q=test&
 │   └── uds-proxy/
 │       └── main.go          # CLI 入口
 ├── internal/
-│   └── proxy/
-│       ├── config.go        # 配置结构体
-│       ├── server.go        # HTTP 服务器
-│       ├── handlers.go      # 路由处理器
-│       └── pool.go          # 连接池管理
+│   ├── command/
+│   │   └── udsproxy/        # CLI 命令定义
+│   ├── proxy/
+│   │   ├── config.go        # 配置结构体
+│   │   ├── server.go        # HTTP 服务器
+│   │   ├── handlers.go      # 路由处理器
+│   │   └── pool.go          # 连接池管理
+│   └── version/
+│       └── version.go       # 版本信息（构建时注入）
 ├── go.mod
 └── go.sum
 ```

@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/lwmacct/251124-uds-proxy/internal/version"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -40,7 +41,7 @@ func TestServer_handleRoot(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, "uds-proxy", resp["service"])
-		assert.Equal(t, version, resp["version"])
+		assert.Equal(t, version.GetVersion(), resp["version"])
 		assert.NotEmpty(t, resp["description"])
 		assert.NotEmpty(t, resp["usage"])
 		assert.NotNil(t, resp["examples"])
@@ -87,80 +88,18 @@ func TestServer_handleProxy(t *testing.T) {
 		server.handleProxy(rec, req)
 
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
-
-		var resp map[string]any
-		err := json.Unmarshal(rec.Body.Bytes(), &resp)
-		require.NoError(t, err)
-
-		assert.True(t, resp["error"].(bool))
-		assert.Contains(t, resp["detail"], "path")
+		assert.Empty(t, rec.Body.Bytes()) // 纯网关模式：无 body
 	})
 
-	t.Run("socket 文件不存在返回 404", func(t *testing.T) {
+	t.Run("socket 文件不存在返回 502", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/proxy?path=/nonexistent/socket.sock", nil)
 		rec := httptest.NewRecorder()
 
 		server.handleProxy(rec, req)
 
-		assert.Equal(t, http.StatusNotFound, rec.Code)
-
-		var resp map[string]any
-		err := json.Unmarshal(rec.Body.Bytes(), &resp)
-		require.NoError(t, err)
-
-		assert.True(t, resp["error"].(bool))
-		assert.Contains(t, resp["detail"], "不存在")
+		assert.Equal(t, http.StatusBadGateway, rec.Code)
+		assert.Empty(t, rec.Body.Bytes()) // 纯网关模式：无 body
 	})
-}
-
-// TestServer_errorResponse 测试错误响应
-func TestServer_errorResponse(t *testing.T) {
-	server := newTestServer()
-
-	tests := []struct {
-		name       string
-		statusCode int
-		message    string
-	}{
-		{
-			name:       "400 Bad Request",
-			statusCode: http.StatusBadRequest,
-			message:    "参数错误",
-		},
-		{
-			name:       "404 Not Found",
-			statusCode: http.StatusNotFound,
-			message:    "资源未找到",
-		},
-		{
-			name:       "500 Internal Server Error",
-			statusCode: http.StatusInternalServerError,
-			message:    "内部服务器错误",
-		},
-		{
-			name:       "503 Service Unavailable",
-			statusCode: http.StatusServiceUnavailable,
-			message:    "服务不可用",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			rec := httptest.NewRecorder()
-
-			server.errorResponse(rec, tt.statusCode, tt.message)
-
-			assert.Equal(t, tt.statusCode, rec.Code)
-			assert.Equal(t, "application/json", rec.Header().Get("Content-Type"))
-
-			var resp map[string]any
-			err := json.Unmarshal(rec.Body.Bytes(), &resp)
-			require.NoError(t, err)
-
-			assert.True(t, resp["error"].(bool))
-			assert.Equal(t, tt.message, resp["detail"])
-		})
-	}
 }
 
 // TestServer_handleRoot_Methods 测试不同 HTTP 方法
