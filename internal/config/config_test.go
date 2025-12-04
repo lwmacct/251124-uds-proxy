@@ -1,3 +1,5 @@
+// Author: lwmacct (https://github.com/lwmacct)
+
 package config
 
 import (
