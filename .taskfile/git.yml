@@ -18,11 +18,15 @@ tasks:
 
   push:
     desc: "推送代码"
+    vars:
+      TIME_NOW:
+        sh: echo "chore $(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M:%S %Z')"
     cmds:
       - |
         git add --all
-        git commit -m '{{.CLI_ARGS | default "Unimportant"}}' || true
-        git push || true
+        git status
+        git commit -m '{{.CLI_ARGS | default .TIME_NOW}}'
+        git push
 
   tag:next:
     desc: "创建 tag (参数: [版本等级] [提交信息], 等级: 1=major, 2=minor, 3=patch, 默认 3)"
