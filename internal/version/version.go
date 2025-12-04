@@ -45,6 +45,11 @@ func GetShortVersion() string {
 	return AppVersion
 }
 
+// GetAppRawName 返回应用原始名称
+func GetAppRawName() string {
+	return AppRawName
+}
+
 // GetBuildInfo 返回构建相关信息 (用于健康检查等)
 func GetBuildInfo() string {
 	return fmt.Sprintf("版本: %s, 提交: %s, 构建时间: %s", AppVersion, GitCommit, BuildTime)

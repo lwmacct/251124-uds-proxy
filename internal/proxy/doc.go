@@ -13,7 +13,7 @@
 //
 // 创建并启动一个代理服务器：
 //
-//	cfg := proxy.Config{
+//	cfg := &config.Config{
 //	    Host:         "127.0.0.1",
 //	    Port:         8080,
 //	    Timeout:      30000,

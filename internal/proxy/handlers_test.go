@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/lwmacct/251124-uds-proxy/internal/config"
 	"github.com/lwmacct/251124-uds-proxy/internal/version"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -13,7 +14,7 @@ import (
 
 // newTestServer 创建用于测试的服务器实例
 func newTestServer() *Server {
-	server, _ := NewServer(Config{
+	server, _ := NewServer(&config.Config{
 		Host:         "127.0.0.1",
 		Port:         0,
 		Timeout:      30000,

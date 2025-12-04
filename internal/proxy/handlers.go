@@ -34,14 +34,14 @@ func (s *Server) handleRoot(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(info)
+	_ = json.NewEncoder(w).Encode(info)
 }
 
 // handleHealth 处理健康检查请求。
 // 返回 JSON 格式的健康状态信息，用于负载均衡器或监控系统。
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{
+	_ = json.NewEncoder(w).Encode(map[string]string{
 		"status":  "healthy",
 		"service": "uds-proxy",
 	})
@@ -136,7 +136,7 @@ func (s *Server) handleProxy(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	// Copy response headers
 	for key, values := range resp.Header {
@@ -147,6 +147,6 @@ func (s *Server) handleProxy(w http.ResponseWriter, r *http.Request) {
 
 	// Write status code and body
 	w.WriteHeader(resp.StatusCode)
-	io.Copy(w, resp.Body)
+	_, _ = io.Copy(w, resp.Body)
 }
 

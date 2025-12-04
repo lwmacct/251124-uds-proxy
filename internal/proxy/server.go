@@ -8,12 +8,14 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/lwmacct/251124-uds-proxy/internal/config"
 )
 
 // Server 表示 HTTP 代理服务器实例。
 // 它管理 HTTP 服务器、客户端连接池和服务器生命周期。
 type Server struct {
-	config     Config
+	config     *config.Config
 	httpServer *http.Server
 	pool       *ClientPool
 	actualPort int
@@ -21,7 +23,7 @@ type Server struct {
 
 // NewServer 创建一个新的代理服务器实例。
 // 它使用提供的配置初始化服务器和客户端连接池。
-func NewServer(cfg Config) (*Server, error) {
+func NewServer(cfg *config.Config) (*Server, error) {
 	s := &Server{
 		config: cfg,
 		pool:   NewClientPool(cfg.MaxConns, cfg.MaxIdleConns, time.Duration(cfg.Timeout)*time.Millisecond),
@@ -80,14 +82,16 @@ func (s *Server) Shutdown() {
 	defer cancel()
 
 	if s.httpServer != nil {
-		s.httpServer.Shutdown(ctx)
+		if err := s.httpServer.Shutdown(ctx); err != nil {
+			slog.Warn("服务器关闭时出错", "error", err)
+		}
 	}
 
 	s.pool.CloseAll()
 
 	// Clean up port file
 	if s.config.PortFile != "" {
-		os.Remove(s.config.PortFile)
+		_ = os.Remove(s.config.PortFile)
 	}
 
 	slog.Info("服务器关闭完成")
@@ -105,7 +109,7 @@ func (s *Server) getAvailablePort() (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	defer listener.Close()
+	defer func() { _ = listener.Close() }()
 
 	return listener.Addr().(*net.TCPAddr).Port, nil
 }

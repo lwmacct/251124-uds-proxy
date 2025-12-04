@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/lwmacct/251124-uds-proxy/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -16,11 +17,11 @@ import (
 func TestNewServer(t *testing.T) {
 	tests := []struct {
 		name   string
-		config Config
+		config *config.Config
 	}{
 		{
 			name: "默认配置",
-			config: Config{
+			config: &config.Config{
 				Host:         "127.0.0.1",
 				Port:         8080,
 				Timeout:      30000,
@@ -30,7 +31,7 @@ func TestNewServer(t *testing.T) {
 		},
 		{
 			name: "自动分配端口",
-			config: Config{
+			config: &config.Config{
 				Host:         "127.0.0.1",
 				Port:         0,
 				Timeout:      30000,
@@ -40,13 +41,13 @@ func TestNewServer(t *testing.T) {
 		},
 		{
 			name: "最小配置",
-			config: Config{
+			config: &config.Config{
 				Host: "127.0.0.1",
 			},
 		},
 		{
 			name:   "零值配置",
-			config: Config{},
+			config: &config.Config{},
 		},
 	}
 
@@ -65,7 +66,7 @@ func TestNewServer(t *testing.T) {
 // TestServer_getAvailablePort 测试获取可用端口
 func TestServer_getAvailablePort(t *testing.T) {
 	t.Run("返回配置的端口", func(t *testing.T) {
-		server, _ := NewServer(Config{
+		server, _ := NewServer(&config.Config{
 			Host: "127.0.0.1",
 			Port: 8888,
 		})
@@ -77,7 +78,7 @@ func TestServer_getAvailablePort(t *testing.T) {
 	})
 
 	t.Run("自动分配可用端口", func(t *testing.T) {
-		server, _ := NewServer(Config{
+		server, _ := NewServer(&config.Config{
 			Host: "127.0.0.1",
 			Port: 0,
 		})
@@ -93,7 +94,7 @@ func TestServer_getAvailablePort(t *testing.T) {
 // TestServer_writePortInfo 测试写入端口信息
 func TestServer_writePortInfo(t *testing.T) {
 	t.Run("不配置端口文件时不写入", func(t *testing.T) {
-		server, _ := NewServer(Config{
+		server, _ := NewServer(&config.Config{
 			Host:     "127.0.0.1",
 			Port:     8080,
 			PortFile: "",
@@ -109,7 +110,7 @@ func TestServer_writePortInfo(t *testing.T) {
 		tmpDir := t.TempDir()
 		portFile := filepath.Join(tmpDir, "port.txt")
 
-		server, _ := NewServer(Config{
+		server, _ := NewServer(&config.Config{
 			Host:     "127.0.0.1",
 			Port:     8080,
 			PortFile: portFile,
@@ -128,7 +129,7 @@ func TestServer_writePortInfo(t *testing.T) {
 
 // TestServer_accessLogMiddleware 测试访问日志中间件
 func TestServer_accessLogMiddleware(t *testing.T) {
-	server, _ := NewServer(Config{
+	server, _ := NewServer(&config.Config{
 		Host: "127.0.0.1",
 		Port: 0,
 	})
@@ -203,7 +204,7 @@ func TestResponseWriter(t *testing.T) {
 // TestServer_Shutdown 测试服务器关闭
 func TestServer_Shutdown(t *testing.T) {
 	t.Run("关闭未启动的服务器", func(t *testing.T) {
-		server, _ := NewServer(Config{
+		server, _ := NewServer(&config.Config{
 			Host: "127.0.0.1",
 			Port: 0,
 		})
@@ -222,7 +223,7 @@ func TestServer_Shutdown(t *testing.T) {
 		err := os.WriteFile(portFile, []byte("8080\n"), 0644)
 		require.NoError(t, err)
 
-		server, _ := NewServer(Config{
+		server, _ := NewServer(&config.Config{
 			Host:     "127.0.0.1",
 			Port:     0,
 			PortFile: portFile,
@@ -236,44 +237,9 @@ func TestServer_Shutdown(t *testing.T) {
 	})
 }
 
-// TestConfig 测试配置结构体
-func TestConfig(t *testing.T) {
-	t.Run("零值配置", func(t *testing.T) {
-		cfg := Config{}
-
-		assert.Empty(t, cfg.Host)
-		assert.Zero(t, cfg.Port)
-		assert.Empty(t, cfg.PortFile)
-		assert.Zero(t, cfg.Timeout)
-		assert.Zero(t, cfg.MaxConns)
-		assert.Zero(t, cfg.MaxIdleConns)
-		assert.False(t, cfg.NoAccessLog)
-	})
-
-	t.Run("完整配置", func(t *testing.T) {
-		cfg := Config{
-			Host:         "0.0.0.0",
-			Port:         8080,
-			PortFile:     "/tmp/port.txt",
-			Timeout:      30000,
-			MaxConns:     100,
-			MaxIdleConns: 10,
-			NoAccessLog:  true,
-		}
-
-		assert.Equal(t, "0.0.0.0", cfg.Host)
-		assert.Equal(t, 8080, cfg.Port)
-		assert.Equal(t, "/tmp/port.txt", cfg.PortFile)
-		assert.Equal(t, 30000, cfg.Timeout)
-		assert.Equal(t, 100, cfg.MaxConns)
-		assert.Equal(t, 10, cfg.MaxIdleConns)
-		assert.True(t, cfg.NoAccessLog)
-	})
-}
-
 // TestServer_PoolIntegration 测试服务器与连接池集成
 func TestServer_PoolIntegration(t *testing.T) {
-	server, err := NewServer(Config{
+	server, err := NewServer(&config.Config{
 		Host:         "127.0.0.1",
 		Port:         0,
 		Timeout:      1000,

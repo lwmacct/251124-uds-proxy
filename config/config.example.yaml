@@ -1,0 +1,14 @@
+# 配置示例文件
+# 复制此文件为 config.yaml 并根据需要修改
+#
+# 此文件与 internal/config/config.go 中的 DefaultConfig() 保持同步
+# 所有配置项都可以通过环境变量覆盖 (默认的环境变量前缀：APP_)
+# 例如：APP_HOST=0.0.0.0 会覆盖 host 的值
+
+host: "127.0.0.1" # 监听地址，如 '127.0.0.1' 仅本地，'0.0.0.0' 所有接口
+port: 0 # 监听端口，0 表示自动分配
+port_file: "/tmp/uds-proxy.port" # 写入实际端口号的文件路径
+timeout: 10000 # 请求超时时间 (毫秒)
+max_conns: 10 # 每个 Unix 套接字的最大连接数
+max_idle_conns: 5 # 每个 Unix 套接字的最大空闲连接数
+no_access_log: false # 禁用访问日志
