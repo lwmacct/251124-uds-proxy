@@ -2,7 +2,7 @@ package udsproxy
 
 import (
 	"github.com/lwmacct/251124-uds-proxy/internal/config"
-	"github.com/lwmacct/251124-uds-proxy/internal/version"
+	"github.com/lwmacct/251207-go-pkg-version/pkg/version"
 	"github.com/urfave/cli/v3"
 )
 
@@ -11,12 +11,10 @@ var defaults = config.DefaultConfig()
 
 // Command returns the uds-proxy CLI command
 var Command = &cli.Command{
-	Name:   "uds-proxy",
-	Usage:  "HTTP server that proxies requests to Unix domain sockets",
-	Action: action,
-	Commands: []*cli.Command{
-		version.Command,
-	},
+	Name:     "uds-proxy",
+	Usage:    "HTTP server that proxies requests to Unix domain sockets",
+	Action:   action,
+	Commands: []*cli.Command{version.Command},
 	Flags: []cli.Flag{
 		&cli.StringFlag{
 			Name:    "host",

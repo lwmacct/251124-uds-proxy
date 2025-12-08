@@ -9,7 +9,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/lwmacct/251124-uds-proxy/internal/version"
+	"github.com/lwmacct/251207-go-pkg-version/pkg/version"
 )
 
 // handleRoot 处理根路径请求，返回服务信息。
@@ -149,4 +149,3 @@ func (s *Server) handleProxy(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(resp.StatusCode)
 	_, _ = io.Copy(w, resp.Body)
 }
-

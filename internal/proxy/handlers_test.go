@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/lwmacct/251124-uds-proxy/internal/config"
-	"github.com/lwmacct/251124-uds-proxy/internal/version"
+	"github.com/lwmacct/251207-go-pkg-version/pkg/version"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

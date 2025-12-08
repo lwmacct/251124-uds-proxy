@@ -9,8 +9,11 @@ import (
 
 	"github.com/lwmacct/251124-uds-proxy/internal/config"
 	"github.com/lwmacct/251124-uds-proxy/internal/proxy"
-	"github.com/lwmacct/251125-go-mod-logger/pkg/logger"
+	"github.com/lwmacct/251125-go-pkg-logger/pkg/logger"
+	"github.com/lwmacct/251207-go-pkg-version/pkg/version"
 	"github.com/urfave/cli/v3"
+
+	pkgconfig "github.com/lwmacct/251207-go-pkg-config/pkg/config"
 )
 
 // 配置优先级 (从低到高)：
@@ -25,7 +28,7 @@ func action(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	// 加载配置：默认值 → 配置文件 → 环境变量 → CLI flags
-	cfg, err := config.Load(cmd)
+	cfg, err := config.Load(cmd, pkgconfig.DefaultPaths(version.GetAppRawName()))
 	if err != nil {
 		return err
 	}

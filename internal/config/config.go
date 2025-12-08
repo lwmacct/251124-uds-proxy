@@ -1,17 +1,15 @@
-// Package config 提供应用配置管理
+// Package config 提供应用配置管理。
 //
-// 配置加载优先级 (从低到高) ：
-// 1. 默认值 - DefaultConfig() 函数中定义
-// 2. 配置文件 - config.yaml 或 config/config.yaml
-// 3. 环境变量 - 默认前缀 APP_ (如 APP_HOST)，可通过 Load 第二参数自定义
-// 4. CLI flags - 用户明确指定的命令行参数 (如 --host)
-//
-// 单一来源设计 (Single Source of Truth)：
-// - DefaultConfig() 是所有默认值的唯一定义处
-// - CLI flags 通过 config.DefaultConfig() 读取默认值，确保 --help 显示一致
-// - config/config.example.yaml 由测试自动生成，无需手动维护
-// - 配置文件路径硬编码在 Load() 函数中：[]string{"config.yaml", "config/config.yaml"}
+// 配置加载优先级 (从低到高)：
+//  1. 默认值 - DefaultConfig() 函数中定义
+//  2. 配置文件 - 按 configPaths 顺序搜索
+//  3. CLI flags - 最高优先级
 package config
+
+import (
+	"github.com/lwmacct/251207-go-pkg-config/pkg/config"
+	"github.com/urfave/cli/v3"
+)
 
 // Config UDS 代理服务配置
 type Config struct {
@@ -37,4 +35,10 @@ func DefaultConfig() Config {
 		MaxIdleConns: 5,
 		NoAccessLog:  false,
 	}
+}
+
+// Load 加载配置，委托给 pkg/config.Load 泛型函数
+// configPaths 为可选的配置文件搜索路径
+func Load(cmd *cli.Command, configPaths []string) (*Config, error) {
+	return config.Load(cmd, configPaths, DefaultConfig())
 }
