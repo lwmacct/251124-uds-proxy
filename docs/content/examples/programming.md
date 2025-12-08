@@ -1,5 +1,27 @@
 # 编程语言集成
 
+<!--TOC-->
+
+- [Python](#python) `:28+73`
+  - [使用 requests 库](#使用-requests-库) `:30+36`
+  - [异步客户端 (aiohttp)](#异步客户端-aiohttp) `:66+35`
+- [Go](#go) `:101+129`
+  - [使用标准库](#使用标准库) `:103+65`
+  - [封装客户端](#封装客户端) `:168+62`
+- [JavaScript / Node.js](#javascript-nodejs) `:230+73`
+  - [使用 fetch](#使用-fetch) `:232+35`
+  - [使用 axios](#使用-axios) `:267+36`
+- [Shell / Bash](#shell-bash) `:303+72`
+  - [基础封装](#基础封装) `:305+35`
+  - [实用函数库](#实用函数库) `:340+35`
+- [Rust](#rust) `:375+36`
+- [最佳实践](#最佳实践) `:411+43`
+  - [1. 错误处理](#1-错误处理) `:413+16`
+  - [2. 连接池复用](#2-连接池复用) `:429+13`
+  - [3. 超时控制](#3-超时控制) `:442+12`
+
+<!--TOC-->
+
 本文档展示如何在不同编程语言中使用 uds-proxy。
 
 ## Python
@@ -209,13 +231,13 @@ func (c *Client) Request(socketPath, targetURL, method string, body interface{})
 ### 使用 fetch
 
 ```javascript
-const PROXY_BASE = 'http://localhost:8080/proxy';
-const DOCKER_SOCK = '/var/run/docker.sock';
+const PROXY_BASE = "http://localhost:8080/proxy";
+const DOCKER_SOCK = "/var/run/docker.sock";
 
 async function dockerRequest(url, options = {}) {
   const params = new URLSearchParams({
     path: DOCKER_SOCK,
-    url: url
+    url: url,
   });
 
   const response = await fetch(`${PROXY_BASE}?${params}`, options);
@@ -223,20 +245,20 @@ async function dockerRequest(url, options = {}) {
 }
 
 // 获取版本
-const version = await dockerRequest('/version');
+const version = await dockerRequest("/version");
 console.log(`Docker Version: ${version.Version}`);
 
 // 列出容器
-const containers = await dockerRequest('/containers/json?all=true');
-containers.forEach(c => {
+const containers = await dockerRequest("/containers/json?all=true");
+containers.forEach((c) => {
   console.log(`${c.Names[0]}: ${c.State}`);
 });
 
 // 创建容器
-const newContainer = await dockerRequest('/containers/create?name=my-nginx', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ Image: 'nginx:alpine' })
+const newContainer = await dockerRequest("/containers/create?name=my-nginx", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ Image: "nginx:alpine" }),
 });
 console.log(`Created: ${newContainer.Id}`);
 ```
@@ -244,33 +266,34 @@ console.log(`Created: ${newContainer.Id}`);
 ### 使用 axios
 
 ```javascript
-const axios = require('axios');
+const axios = require("axios");
 
 const client = axios.create({
-  baseURL: 'http://localhost:8080'
+  baseURL: "http://localhost:8080",
 });
 
 async function listContainers() {
-  const { data } = await client.get('/proxy', {
+  const { data } = await client.get("/proxy", {
     params: {
-      path: '/var/run/docker.sock',
-      url: '/containers/json',
-      all: true
-    }
+      path: "/var/run/docker.sock",
+      url: "/containers/json",
+      all: true,
+    },
   });
   return data;
 }
 
 async function createContainer(name, image) {
-  const { data } = await client.post('/proxy',
+  const { data } = await client.post(
+    "/proxy",
     { Image: image },
     {
       params: {
-        path: '/var/run/docker.sock',
-        url: '/containers/create',
-        name: name
-      }
-    }
+        path: "/var/run/docker.sock",
+        url: "/containers/create",
+        name: name,
+      },
+    },
   );
   return data;
 }
