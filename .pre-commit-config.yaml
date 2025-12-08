@@ -1,6 +1,10 @@
 # Pre-commit hooks configuration
 # See https://pre-commit.com for more information
 
+# 全局配置
+default_stages: [pre-commit]
+fail_fast: true # 发现第一个错误即停止
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -20,6 +24,14 @@ repos:
         entry: prettier --write --ignore-unknown --no-error-on-unmatched-pattern
         language: system
         stages: [pre-commit]
+
+      - id: mc-mdtoc
+        name: Update markdown TOC in docs
+        entry: mc-mdtoc -i
+        pass_filenames: false
+        language: system
+        stages: [pre-commit]
+        files: \.md$
 
       - id: build-docs
         name: Build VitePress docs
@@ -44,7 +56,3 @@ repos:
         pass_filenames: false
         stages: [pre-commit]
         files: ^(internal/config/config\.go|config/config\.yaml)$
-
-# 全局配置
-default_stages: [pre-commit]
-fail_fast: true
