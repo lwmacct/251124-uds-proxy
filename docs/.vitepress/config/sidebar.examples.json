@@ -1,0 +1,10 @@
+[
+  {
+    "text": "使用示例",
+    "items": [
+      { "text": "Docker API", "link": "/examples/docker-api" },
+      { "text": "自定义服务", "link": "/examples/custom-service" },
+      { "text": "编程语言集成", "link": "/examples/programming" }
+    ]
+  }
+]
